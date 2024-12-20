@@ -3,7 +3,9 @@ import { UserNav } from './UserNav';
 import { currentUser } from '@clerk/nextjs';
 
 export default async function Header() {
-  const user = await currentUser();
+  // TODO: Handle Auth Later
+  // const user = await currentUser();
+  const user = {};
   return (
     <div className="container relative m-0 mx-auto py-10 md:px-10">
       <div className="max-width flex items-center justify-between">
@@ -24,7 +26,7 @@ export default async function Header() {
         <div className="flex w-fit items-center gap-[22px]">
           {user ? (
             <>
-              <Link
+              {/* <Link
                 href={'/dashboard'}
                 className="hidden cursor-pointer text-lg text-dark md:inline-block lg:text-xl"
               >
@@ -44,7 +46,7 @@ export default async function Header() {
                     ({ id }) => id === user.primaryEmailAddressId,
                   )!.emailAddress
                 }
-              />
+              /> */}
             </>
           ) : (
             <Link href="/dashboard">

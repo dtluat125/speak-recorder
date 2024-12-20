@@ -47,8 +47,10 @@ export default function RootLayout({
       </head>
       <body>
         <ConvexClientProvider>
-          {children}
-          <Footer />
+          <div className="flex min-h-screen flex-col">
+            <div className="flex-1">{children}</div>
+            <Footer />
+          </div>
           <Toaster position="bottom-left" reverseOrder={false} />
         </ConvexClientProvider>
       </body>

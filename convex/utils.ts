@@ -20,6 +20,8 @@ export const queryWithUser = customQuery(
 export const mutationWithUser = customMutation(
   mutation,
   customCtx(async (ctx) => {
+    // TODO: Remove later when need Auth
+    return { userId: null };
     const userId = await getUserId(ctx);
     if (userId === undefined) {
       throw new ConvexError('User must be logged in.');
@@ -47,6 +49,7 @@ async function getUserId(ctx: { auth: Auth }) {
 export const envVarsMissing = query({
   args: {},
   handler: async () => {
+    return null;
     if (process.env.REPLICATE_API_KEY && process.env.TOGETHER_API_KEY) {
       return null;
     }

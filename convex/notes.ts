@@ -15,6 +15,9 @@ export const createNote = mutationWithUser({
   },
   handler: async (ctx, { storageId }) => {
     const userId = ctx.userId;
+    if (!userId) {
+      return null;
+    }
     const fileUrl = (await ctx.storage.getUrl(storageId))!;
 
     const noteId = await ctx.db.insert('notes', {

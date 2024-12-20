@@ -1,9 +1,11 @@
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import toast, { Toaster } from 'react-hot-toast';
 import { Doc } from '@/convex/_generated/dataModel';
+import { getAudioFromIndexedDB } from '@/lib/utils';
+import AudioPlayer from '@/components/pages/recording/AudioPlayer';
 
 export default function RecordingMobile({
   note,
@@ -16,6 +18,7 @@ export default function RecordingMobile({
   const [transcriptOpen, setTranscriptOpen] = useState<boolean>(true);
   const [summaryOpen, setSummaryOpen] = useState<boolean>(false);
   const [actionItemOpen, setActionItemOpen] = useState<boolean>(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   const mutateActionItems = useMutation(api.notes.removeActionItem);
 
@@ -24,14 +27,37 @@ export default function RecordingMobile({
     mutateActionItems({ id: actionId });
   }
 
+  useEffect(() => {
+    // Fetch audio from IndexedDB when the component mounts
+    const fetchAudio = async () => {
+      try {
+        const audioFileId = localStorage.getItem('audioFileId');
+        const audioBlob = await getAudioFromIndexedDB(audioFileId || ''); // Replace with the actual audio file ID
+        if (audioBlob) {
+          const url = URL.createObjectURL(audioBlob);
+          setAudioUrl(url);
+        }
+      } catch (error) {
+        console.error('Error fetching audio from IndexedDB:', error);
+      }
+    };
+
+    fetchAudio();
+  }, []);
+
   return (
     <div className="md:hidden">
       <div className="max-width my-5 flex items-center justify-center">
         <h1 className="leading text-center text-xl font-medium leading-[114.3%] tracking-[-0.75px] text-dark md:text-[35px] lg:text-[43px]">
-          {title ?? 'Untitled Note'}
+          {title ?? 'Your Note'}
         </h1>
       </div>
-      <div className="grid w-full grid-cols-3 ">
+      {audioUrl && (
+        <div className="mb-6 flex justify-center px-4">
+          <AudioPlayer src={audioUrl} />
+        </div>
+      )}
+      <div className="grid w-full grid-cols-2 ">
         <button
           onClick={() => (
             setTranscriptOpen(!transcriptOpen),
@@ -56,7 +82,7 @@ export default function RecordingMobile({
         >
           Summary
         </button>
-        <button
+        {/* <button
           onClick={() => (
             setTranscriptOpen(false),
             setActionItemOpen(!actionItemOpen),
@@ -67,20 +93,20 @@ export default function RecordingMobile({
           }`}
         >
           Action Items
-        </button>
+        </button> */}
       </div>
       <div className="w-full">
         {transcriptOpen && (
-          <div className="relative mt-2 min-h-[70vh] w-full px-4 py-3 text-justify font-light">
+          <div className="relative mt-2 w-full px-4 py-3 text-justify font-light">
             <div className="">{transcription}</div>
           </div>
         )}
         {summaryOpen && (
-          <div className="relative mt-2 min-h-[70vh] w-full px-4 py-3 text-justify font-light">
+          <div className="relative mt-2 w-full px-4 py-3 text-justify font-light">
             {summary}
           </div>
         )}
-        {actionItemOpen && (
+        {/* {actionItemOpen && (
           <div className="relative min-h-[70vh] w-full px-4 py-3">
             {' '}
             <div className="relative mx-auto mt-[27px] w-full max-w-[900px] px-5 md:mt-[45px]">
@@ -127,7 +153,7 @@ export default function RecordingMobile({
               </div>
             </div>{' '}
           </div>
-        )}
+        )} */}
         <Toaster position="bottom-left" reverseOrder={false} />
       </div>
     </div>

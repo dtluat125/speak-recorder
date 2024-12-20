@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
-import { getCurrentFormattedDate } from '@/lib/utils';
+import { getCurrentFormattedDate, saveAudioToIndexedDB } from '@/lib/utils';
 import { useUser } from '@clerk/nextjs';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import Header from '@/components/ui/Header';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
+import { useMutation, useQuery } from 'convex/react';
+import Image from 'next/image';
+import { useEffect, useRef, useState } from 'react';
+import fixWebmDuration from 'fix-webm-duration';
+import { useRouter } from 'next-nprogress-bar';
 
 const RecordVoicePage = () => {
   const [title, setTitle] = useState('Record your voice note');
@@ -24,10 +24,11 @@ const RecordVoicePage = () => {
   const createNote = useMutation(api.notes.createNote);
 
   const router = useRouter();
-
+  const startTime = useRef(Date.now());
   async function startRecording() {
-    setIsRunning(true);
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    setIsRunning(true);
+
     const recorder = new MediaRecorder(stream);
     let audioChunks: any = [];
 
@@ -37,25 +38,41 @@ const RecordVoicePage = () => {
 
     recorder.onstop = async () => {
       const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+      const fixedBlob = await fixWebmDuration(
+        audioBlob,
+        Date.now() - startTime.current,
+      );
+      const audioUrl = URL.createObjectURL(fixedBlob);
 
       const postUrl = await generateUploadUrl();
-      const result = await fetch(postUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'audio/mp3' },
-        body: audioBlob,
-      });
-      const { storageId } = await result.json();
+      // const result = await fetch(postUrl, {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'audio/mp3' },
+      //   body: audioBlob,
+      // });
+      // const { storageId } = await result.json();
 
-      if (user) {
-        let noteId = await createNote({
-          storageId,
-        });
+      // if (user) {
+      //   let noteId = await createNote({
+      //     storageId,
+      //   });
 
-        router.push(`/recording/${noteId}`);
+      try {
+        const fileId = await saveAudioToIndexedDB(fixedBlob);
+        console.log('Audio saved with ID:', fileId);
+        localStorage.setItem('audioFileId', fileId);
+
+        // Optional: Redirect or perform additional actions
+        router.push(`/recording/test`, { scroll: false });
+      } catch (error) {
+        console.error(error);
       }
+
+      // }
     };
     setMediaRecorder(recorder as any);
     recorder.start();
+    startTime.current = Date.now();
   }
 
   function stopRecording() {
@@ -77,6 +94,13 @@ const RecordVoicePage = () => {
 
     return () => clearInterval(interval);
   }, [isRunning]);
+
+  useEffect(() => {
+    if (totalSeconds > 8) {
+      stopRecording();
+      return;
+    }
+  }, [totalSeconds]);
 
   function formatTime(time: number): string {
     return time < 10 ? `0${time}` : `${time}`;
@@ -113,7 +137,8 @@ const RecordVoicePage = () => {
         </div>
         <div className="z-50 flex h-fit w-fit flex-col items-center justify-center">
           <h1 className="text-[60px] leading-[114.3%] tracking-[-1.5px] text-light">
-              {formatTime(Math.floor(totalSeconds / 60))}:{formatTime(totalSeconds % 60)}
+            {formatTime(Math.floor(totalSeconds / 60))}:
+            {formatTime(totalSeconds % 60)}
           </h1>
         </div>
       </div>
