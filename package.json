@@ -4,10 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "npm-run-all --parallel dev:backend dev:frontend",
+    "start": "npm-run-all --parallel start:backend start:frontend",
     "predev": "convex dev --until-success",
     "build": "next build",
     "dev:backend": "convex dev",
-    "dev:frontend": "next dev"
+    "dev:frontend": "next dev",
+    "start:backend": "convex dev",
+    "start:frontend": "next start"
   },
   "dependencies": {
     "@clerk/nextjs": "^4.29.7",

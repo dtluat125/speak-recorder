@@ -1,46 +1,45 @@
 'use client';
 
-import RecordedfileItemCard from '@/components/pages/dashboard/RecordedfileItemCard';
 import { api } from '@/convex/_generated/api';
-import { usePreloadedQueryWithAuth } from '@/lib/hooks';
 import { Preloaded, useAction } from 'convex/react';
 import { FunctionReturnType } from 'convex/server';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
 export default function DashboardHomePage({
   preloadedNotes,
 }: {
-  preloadedNotes: Preloaded<typeof api.notes.getNotes>;
+  preloadedNotes?: Preloaded<typeof api.notes.getNotes>;
 }) {
-  const allNotes = usePreloadedQueryWithAuth(preloadedNotes) || [];
-  const [searchQuery, setSearchQuery] = useState('');
-  const [relevantNotes, setRelevantNotes] =
-    useState<FunctionReturnType<typeof api.notes.getNotes>>();
+  // const allNotes = usePreloadedQueryWithAuth(preloadedNotes) || [];
+  // const allNotes = [] as any;
 
-  const performMyAction = useAction(api.together.similarNotes);
+  // const [searchQuery, setSearchQuery] = useState('');
+  // const [relevantNotes, setRelevantNotes] =
+  //   useState<FunctionReturnType<typeof api.notes.getNotes>>();
 
-  const handleSearch = async (e: any) => {
-    e.preventDefault();
+  // const performMyAction = useAction(api.together.similarNotes);
 
-    console.log({ searchQuery });
-    if (searchQuery === '') {
-      setRelevantNotes(undefined);
-    } else {
-      const scores = await performMyAction({ searchQuery: searchQuery });
-      const scoreMap: Map<string, number> = new Map();
-      for (const s of scores) {
-        scoreMap.set(s.id, s.score);
-      }
-      const filteredResults = allNotes.filter(
-        (note) => (scoreMap.get(note._id) ?? 0) > 0.6,
-      );
-      setRelevantNotes(filteredResults);
-    }
-  };
+  // const handleSearch = async (e: any) => {
+  //   e.preventDefault();
 
-  const finalNotes = relevantNotes ?? allNotes;
+  //   console.log({ searchQuery });
+  //   if (searchQuery === '') {
+  //     setRelevantNotes(undefined);
+  //   } else {
+  //     const scores = await performMyAction({ searchQuery: searchQuery });
+  //     const scoreMap: Map<string, number> = new Map();
+  //     for (const s of scores) {
+  //       scoreMap.set(s.id, s.score);
+  //     }
+  //     const filteredResults = allNotes.filter(
+  //       (note: any) => (scoreMap.get(note._id) ?? 0) > 0.6,
+  //     );
+  //     setRelevantNotes(filteredResults);
+  //   }
+  // };
+
+  // const finalNotes = relevantNotes ?? allNotes;
 
   return (
     <div
