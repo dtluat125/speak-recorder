@@ -109,3 +109,22 @@ export function getAudioFromIndexedDB(fileId: string): Promise<Blob | null> {
     request.onerror = (error) => reject(`Error opening IndexedDB: ${error}`);
   });
 }
+
+// Save the audio file
+export function saveAudio(blob: Blob, fileName = 'audio.mp3') {
+  // Create a URL for the blob
+  const url = URL.createObjectURL(blob);
+
+  // Create an <a> element
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName; // Set the default file name
+
+  // Append the <a> element to the document body and trigger the download
+  document.body.appendChild(a);
+  a.click();
+
+  // Clean up: Remove the <a> element and revoke the object URL
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}

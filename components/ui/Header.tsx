@@ -1,14 +1,15 @@
 import Link from 'next/link';
 import { UserNav } from './UserNav';
 import { currentUser } from '@clerk/nextjs';
+import Container from '@/components/ui/Container';
 
 export default async function Header() {
   // TODO: Handle Auth Later
   // const user = await currentUser();
   const user = {};
   return (
-    <div className="container relative m-0 mx-auto py-10 md:px-10">
-      <div className="max-width flex items-center justify-between">
+    <Container className="container relative m-0 mx-auto py-10 md:px-10">
+      <div className=" flex items-center justify-between">
         {/* logo */}
         <Link className="flex w-fit items-center gap-[2px]" href="/dashboard">
           <img
@@ -57,6 +58,6 @@ export default async function Header() {
           )}
         </div>
       </div>
-    </div>
+    </Container>
   );
 }

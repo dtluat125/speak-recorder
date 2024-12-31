@@ -1,7 +1,11 @@
 'use client';
 
 import { api } from '@/convex/_generated/api';
-import { getCurrentFormattedDate, saveAudioToIndexedDB } from '@/lib/utils';
+import {
+  getCurrentFormattedDate,
+  saveAudio,
+  saveAudioToIndexedDB,
+} from '@/lib/utils';
 import { useUser } from '@clerk/nextjs';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useMutation, useQuery } from 'convex/react';
@@ -9,14 +13,22 @@ import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 import fixWebmDuration from 'fix-webm-duration';
 import { useRouter } from 'next-nprogress-bar';
+import { Notification } from '@/components/Notification';
+import { apiFactory } from '@/api/apiFactory';
 
 const RecordVoicePage = () => {
-  const [title, setTitle] = useState('Record your voice note');
+  const [title, setTitle] = useState(
+    'The person who loves football is my brother',
+  );
   const envVarsUrl = useQuery(api.utils.envVarsMissing);
 
-  const [mediaRecorder, setMediaRecorder] = useState(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null,
+  );
   const [isRunning, setIsRunning] = useState(false);
   const [totalSeconds, setTotalSeconds] = useState(0);
+
+  const [error, setError] = useState('');
 
   const { user } = useUser();
 
@@ -25,60 +37,80 @@ const RecordVoicePage = () => {
 
   const router = useRouter();
   const startTime = useRef(Date.now());
+
   async function startRecording() {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    setIsRunning(true);
-
-    const recorder = new MediaRecorder(stream);
-    let audioChunks: any = [];
-
-    recorder.ondataavailable = (e) => {
-      audioChunks.push(e.data);
-    };
-
-    recorder.onstop = async () => {
-      const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
-      const fixedBlob = await fixWebmDuration(
-        audioBlob,
-        Date.now() - startTime.current,
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      console.log(
+        'navigator.mediaDevices',
+        devices?.map((device) => device.toJSON()),
       );
-      const audioUrl = URL.createObjectURL(fixedBlob);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
 
-      const postUrl = await generateUploadUrl();
-      // const result = await fetch(postUrl, {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'audio/mp3' },
-      //   body: audioBlob,
-      // });
-      // const { storageId } = await result.json();
+      console.log('Recording started', stream);
+      setIsRunning(true);
 
-      // if (user) {
-      //   let noteId = await createNote({
-      //     storageId,
-      //   });
+      const recorder = new MediaRecorder(stream);
+      let audioChunks: any = [];
 
-      try {
-        const fileId = await saveAudioToIndexedDB(fixedBlob);
-        console.log('Audio saved with ID:', fileId);
-        localStorage.setItem('audioFileId', fileId);
+      recorder.ondataavailable = (e) => {
+        audioChunks.push(e.data);
+      };
 
-        // Optional: Redirect or perform additional actions
-        router.push(`/recording/test`, { scroll: false });
-      } catch (error) {
-        console.error(error);
-      }
+      recorder.onstop = async () => {
+        try {
+          const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+          const fixedBlob = await fixWebmDuration(
+            audioBlob,
+            Date.now() - startTime.current,
+          );
+          const audioUrl = URL.createObjectURL(fixedBlob);
+          // saveAudio(audioBlob);
 
-      // }
-    };
-    setMediaRecorder(recorder as any);
-    recorder.start();
-    startTime.current = Date.now();
+          // const postUrl = await generateUploadUrl();
+          // const result = await fetch(postUrl, {
+          //   method: 'POST',
+          //   headers: { 'Content-Type': 'audio/mp3' },
+          //   body: audioBlob,
+          // });
+          // const { storageId } = await result.json();
+
+          // if (user) {
+          //   let noteId = await createNote({
+          //     storageId,
+          //   });
+
+          const fileId = await saveAudioToIndexedDB(fixedBlob);
+          console.log('Audio saved with ID:', fileId);
+          localStorage.setItem('audioFileId', fileId);
+          localStorage.setItem('audioTranscript', title);
+
+          // Optional: Redirect or perform additional actions
+          router.push(`/recording/test`, { scroll: false });
+        } catch (error) {
+          console.error(error);
+        }
+
+        // }
+      };
+      setMediaRecorder(recorder as any);
+      recorder.start();
+      startTime.current = Date.now();
+    } catch (error) {
+      console.error(error);
+      setError(
+        'Unable to access the media. Please ensure you have granted the necessary permissions.',
+      );
+    }
   }
 
   function stopRecording() {
     // @ts-ignore
-    mediaRecorder.stop();
+    mediaRecorder?.stop();
     setIsRunning(false);
+    mediaRecorder?.stream.getTracks().forEach((track) => track.stop());
   }
 
   const formattedDate = getCurrentFormattedDate();
@@ -107,10 +139,8 @@ const RecordVoicePage = () => {
   }
 
   const handleRecordClick = () => {
-    if (title === 'Record your voice note') {
-      setTitle('Recording...');
-      startRecording();
-    } else if (title === 'Recording...') {
+    if (!isRunning) startRecording();
+    else {
       setTitle('Processing...');
       stopRecording();
     }
@@ -118,16 +148,17 @@ const RecordVoicePage = () => {
 
   return (
     <div className=" flex flex-col items-center justify-between">
-      <h1 className="pt-[25px] text-center text-xl font-medium text-dark md:pt-[47px] md:text-4xl">
-        {title}
-      </h1>
+      <p className="pt-[25px] text-center  text-xl font-medium text-dark md:pt-[47px] md:text-4xl">
+        Hit record and read the below text out loud
+      </p>
+      <blockquote className="mt-6 border-l-2 pl-6 italic md:text-2xl">
+        "{title}"
+      </blockquote>
       <p className="mb-20 mt-4 text-gray-400">{formattedDate}</p>
       <div className="relative mx-auto flex h-[316px] w-[316px] items-center justify-center">
         <div
           className={`recording-box absolute h-full w-full rounded-[50%] p-[12%] pt-[17%] ${
-            title !== 'Record your voice note' && title !== 'Processing...'
-              ? 'record-animation'
-              : ''
+            isRunning ? 'record-animation' : ''
           }`}
         >
           <div
@@ -143,8 +174,8 @@ const RecordVoicePage = () => {
         </div>
       </div>
       <div className="mt-10 flex w-fit items-center justify-center gap-[33px] pb-7 md:gap-[77px] ">
-        {envVarsUrl ? (
-          <MissingEnvVars url={envVarsUrl} />
+        {error ? (
+          <Notification title="Error" message={error} variant="error" />
         ) : (
           <button
             onClick={handleRecordClick}
