@@ -1,32 +1,3 @@
-import { PronunciationApiResponse } from '@/features/recording/types';
-
-interface HighlightedWord {
-  word: string; // Word or phoneme
-  isCorrect: boolean; // Whether the pronunciation is correct
-}
-
-// Function to process API response and highlight pronunciation feedback
-export function processPronunciationFeedback(
-  response: PronunciationApiResponse,
-): HighlightedWord[] {
-  const highlightedWords: HighlightedWord[] = [];
-
-  // Iterate over phoneme labels
-  response.phoneme_labels.forEach((labelGroup) => {
-    const { phonemes, scores } = labelGroup;
-
-    phonemes.forEach((phoneme, index) => {
-      const isCorrect = scores[index] === 1; // Score of 1 means correct
-      highlightedWords.push({
-        word: phoneme,
-        isCorrect,
-      });
-    });
-  });
-
-  return highlightedWords;
-}
-
 export function mp3ToBlob(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
     // Ensure the file type is MP3
