@@ -1,10 +1,7 @@
 import ApiClient from '@/api/apiClient';
 import FormData from 'form-data';
 
-import {
-  PredictResponse,
-  PronunciationApiResponse,
-} from '@/features/recording/types';
+import { PredictResponse } from '@/features/recording/types';
 import dayjs from 'dayjs';
 
 class PronunciationService {
@@ -37,7 +34,7 @@ class PronunciationService {
     formData.append('transcript', transcriptText);
 
     try {
-      const response = await this.apiClient.post<PronunciationApiResponse>(
+      const response = await this.apiClient.post<PredictResponse>(
         '/predict',
         formData,
         {},
