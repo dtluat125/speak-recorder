@@ -41,11 +41,6 @@ const RecordVoicePage = () => {
 
   async function startRecording() {
     try {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      console.log(
-        'navigator.mediaDevices',
-        devices?.map((device) => device.toJSON()),
-      );
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: true,
       });
@@ -70,27 +65,7 @@ const RecordVoicePage = () => {
       recorder.onstop = async () => {
         try {
           const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-          const fixedBlob = await fixWebmDuration(
-            audioBlob,
-            Date.now() - startTime.current,
-          );
           const mp3Blob = await convertWebMToMP3(audioBlob);
-
-          const audioUrl = URL.createObjectURL(fixedBlob);
-          // saveAudio(audioBlob);
-
-          // const postUrl = await generateUploadUrl();
-          // const result = await fetch(postUrl, {
-          //   method: 'POST',
-          //   headers: { 'Content-Type': 'audio/mp3' },
-          //   body: audioBlob,
-          // });
-          // const { storageId } = await result.json();
-
-          // if (user) {
-          //   let noteId = await createNote({
-          //     storageId,
-          //   });
 
           const fileId = await saveAudioToIndexedDB(mp3Blob);
           console.log('Audio saved with ID:', fileId);
@@ -110,6 +85,7 @@ const RecordVoicePage = () => {
       startTime.current = Date.now();
     } catch (error) {
       console.error(error);
+      alert(error);
       setError(
         'Unable to access the media. Please ensure you have granted the necessary permissions.',
       );
