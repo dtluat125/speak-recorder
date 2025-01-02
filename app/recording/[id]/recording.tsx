@@ -46,8 +46,8 @@ export default function RecordingPage({
           const link = document.createElement('a');
           link.href = URL.createObjectURL(audioBlob);
           link.download = `${dayjs().format(
-            'yyyy-MM-DD-HH:mm:ss',
-          )}recording.mp3`;
+            'YYYY-MM-DD-HH:mm:ss',
+          )}recording.wav`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);

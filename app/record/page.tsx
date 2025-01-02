@@ -61,7 +61,7 @@ const RecordVoicePage = () => {
 
       recorder.onstop = async () => {
         try {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
           const fixedBlob = await fixWebmDuration(
             audioBlob,
             Date.now() - startTime.current,
