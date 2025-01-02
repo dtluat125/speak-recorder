@@ -7,6 +7,7 @@ import RecordingMobile from '@/components/pages/recording/RecordingMobile';
 import Container from '@/components/ui/Container';
 import { api } from '@/convex/_generated/api';
 import { Note, PredictResponse } from '@/features/recording/types';
+import { getAudioFromIndexedDB } from '@/lib/utils';
 import { Preloaded } from 'convex/react';
 import { debounce } from 'lodash';
 import { Loader2 } from 'lucide-react';
@@ -31,12 +32,12 @@ export default function RecordingPage({
     useAsyncFn(async () => {
       try {
         const audioFileId = localStorage.getItem('audioFileId');
-        // const audioTranscript = localStorage.getItem('audioTranscript');
-        // const audioBlob = await getAudioFromIndexedDB(audioFileId || ''); // Replace with the actual audio file ID
+        const audioTranscript = localStorage.getItem('audioTranscript');
+        const audioBlob = await getAudioFromIndexedDB(audioFileId || ''); // Replace with the actual audio file ID
 
-        const fileData = await fetch('/test.mp3');
-        const audioBlob = await fileData.blob();
-        const audioTranscript = 'The person who loves football is my brother';
+        // const fileData = await fetch('/test.mp3');
+        // const audioBlob = await fileData.blob();
+        // const audioTranscript = 'The person who loves football is my brother';
         if (!audioBlob) {
           return;
         }
