@@ -27,11 +27,11 @@ class PronunciationService {
     formData.append(
       'audio',
       audioBlob,
-      `audio-${dayjs().format('yyyy-MM-DD HH:mm:ss')}.mp3`,
+      `${dayjs().format('YYYY-MM-DD HH:mm:ss')}.mp3`,
     );
 
     // Append transcript text
-    formData.append('transcript', transcriptText);
+    formData.append('transcript', transcriptText?.toLowerCase());
 
     try {
       const response = await this.apiClient.post<PredictResponse>(
