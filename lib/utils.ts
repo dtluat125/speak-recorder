@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import * as lamejs from '@breezystack/lamejs';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -127,4 +128,53 @@ export function saveAudio(blob: Blob, fileName = 'audio.mp3') {
   // Clean up: Remove the <a> element and revoke the object URL
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+export async function convertWebMToMP3(webmBlob: Blob): Promise<Blob> {
+  const audioContext = new AudioContext();
+
+  // Decode the WebM audio data
+  const arrayBuffer = await webmBlob.arrayBuffer();
+  const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+  const mp3Encoder = new lamejs.Mp3Encoder(
+    audioBuffer.numberOfChannels, // Number of channels (e.g., 1 for mono, 2 for stereo)
+    audioBuffer.sampleRate, // Sample rate (e.g., 44100 Hz)
+    128, // Bitrate in kbps
+  );
+
+  const mp3Data: Uint8Array[] = [];
+  const sampleBlockSize = 1152; // Samples per MP3 frame
+
+  // Loop through the audio buffer to encode each chunk
+  for (let i = 0; i < audioBuffer.length; i += sampleBlockSize) {
+    const leftSamples = audioBuffer
+      .getChannelData(0)
+      .subarray(i, i + sampleBlockSize);
+    const rightSamples =
+      audioBuffer.numberOfChannels > 1
+        ? audioBuffer.getChannelData(1).subarray(i, i + sampleBlockSize)
+        : undefined;
+
+    const mp3Chunk = mp3Encoder.encodeBuffer(
+      convertFloat32ToInt16(leftSamples),
+      rightSamples ? convertFloat32ToInt16(rightSamples) : undefined,
+    );
+    mp3Data.push(mp3Chunk);
+  }
+
+  // Flush remaining MP3 data
+  mp3Data.push(mp3Encoder.flush());
+
+  // Combine all MP3 chunks into a single Blob
+  return new Blob(mp3Data, { type: 'audio/mp3' });
+}
+
+function convertFloat32ToInt16(buffer: Float32Array): Int16Array {
+  const int16Array = new Int16Array(buffer.length);
+  for (let i = 0; i < buffer.length; i++) {
+    const s = Math.max(-1, Math.min(1, buffer[i])); // Clamp to [-1, 1]
+    int16Array[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+  }
+  return int16Array;
 }

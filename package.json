@@ -13,6 +13,7 @@
     "start:frontend": "next start"
   },
   "dependencies": {
+    "@breezystack/lamejs": "^1.2.7",
     "@clerk/nextjs": "^4.29.7",
     "@instructor-ai/instructor": "^0.0.5",
     "@radix-ui/react-avatar": "^1.0.4",

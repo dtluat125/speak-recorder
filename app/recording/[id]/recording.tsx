@@ -29,56 +29,58 @@ export default function RecordingPage({
 
   const [error, setError] = useState('');
 
-  const [{ loading: checkPronunciationLoading }, checkPronunciation] =
-    useAsyncFn(async () => {
-      try {
-        const audioFileId = localStorage.getItem('audioFileId');
-        const audioTranscript = localStorage.getItem('audioTranscript');
-        const audioBlob = await getAudioFromIndexedDB(audioFileId || ''); // Replace with the actual audio file ID
+  const [
+    { loading: checkPronunciationLoading, value: checkPronunciationResponse },
+    checkPronunciation,
+  ] = useAsyncFn(async () => {
+    try {
+      const audioFileId = localStorage.getItem('audioFileId');
+      const audioTranscript = localStorage.getItem('audioTranscript');
+      const audioBlob = await getAudioFromIndexedDB(audioFileId || ''); // Replace with the actual audio file ID
 
-        // const fileData = await fetch('/test.mp3');
-        // const audioBlob = await fileData.blob();
-        // const audioTranscript = 'The person who loves football is my brother';
-        if (!audioBlob) {
-          return;
-        }
-        if (process.env.NEXT_PUBLIC_MODE === 'development') {
-          const link = document.createElement('a');
-          link.href = URL.createObjectURL(audioBlob);
-          link.download = `${dayjs().format(
-            'YYYY-MM-DD-HH:mm:ss',
-          )}recording.wav`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
-        const audioUrl = URL.createObjectURL(audioBlob);
-        const result =
-          await apiFactory.pronunciationService?.checkPronunciation(
-            audioBlob,
-            audioTranscript || '',
-          );
-
-        setCurrentNote({
-          note: {
-            ...currentNote.note,
-            audioFileUrl: audioUrl,
-            generatingTranscript: false,
-            generatingTitle: false,
-            transcription: audioTranscript || '',
-            title: audioTranscript || '',
-            result: result as PredictResponse,
-          },
-        });
-
-        console.log('result', result);
-      } catch (error: any) {
-        console.error('Error:', error);
-        setError(
-          error?.response?.data?.detail || 'Fail to check pronunciation',
-        );
+      // const fileData = await fetch('/test.mp3');
+      // const audioBlob = await fileData.blob();
+      // const audioTranscript = 'The person who loves football is my brother';
+      if (!audioBlob) {
+        return;
       }
-    }, []);
+      if (process.env.NEXT_PUBLIC_MODE !== 'production') {
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(audioBlob);
+        link.download = `${dayjs().format('YYYY-MM-DD-HH:mm:ss')}recording.mp3`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const result = await apiFactory.pronunciationService?.checkPronunciation(
+        audioBlob,
+        audioTranscript || '',
+      );
+
+      setCurrentNote({
+        note: {
+          ...currentNote.note,
+          audioFileUrl: audioUrl,
+          generatingTranscript: false,
+          generatingTitle: false,
+          transcription: audioTranscript || '',
+          title: audioTranscript || '',
+          result: result as PredictResponse,
+        },
+      });
+
+      return result;
+
+      console.log('result', result);
+    } catch (error: any) {
+      console.error('Error:', error);
+      setError(error?.response?.data?.detail || 'Fail to check pronunciation');
+      return {
+        error: error?.response?.data?.detail || 'Fail to check pronunciation',
+      };
+    }
+  }, []);
 
   const debounceCheckPronunciation = debounce(checkPronunciation, 1000);
 
@@ -86,7 +88,7 @@ export default function RecordingPage({
     debounceCheckPronunciation();
   }, [checkPronunciation]);
 
-  if (checkPronunciationLoading) {
+  if (checkPronunciationLoading || !checkPronunciationResponse) {
     return (
       <Container className="mt-10 text-center">
         <h1 className="text-4xl">

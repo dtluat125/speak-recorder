@@ -2,6 +2,7 @@
 
 import { api } from '@/convex/_generated/api';
 import {
+  convertWebMToMP3,
   getCurrentFormattedDate,
   saveAudio,
   saveAudioToIndexedDB,
@@ -52,7 +53,14 @@ const RecordVoicePage = () => {
       console.log('Recording started', stream);
       setIsRunning(true);
 
-      const recorder = new MediaRecorder(stream);
+      const audioStream = new MediaStream(stream.getAudioTracks());
+
+      const recorder = new MediaRecorder(audioStream, {
+        mimeType: 'audio/webm',
+        audioBitsPerSecond: 768000,
+      });
+
+      console.log('Recorder created', recorder);
       let audioChunks: any = [];
 
       recorder.ondataavailable = (e) => {
@@ -61,11 +69,13 @@ const RecordVoicePage = () => {
 
       recorder.onstop = async () => {
         try {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
           const fixedBlob = await fixWebmDuration(
             audioBlob,
             Date.now() - startTime.current,
           );
+          const mp3Blob = await convertWebMToMP3(audioBlob);
+
           const audioUrl = URL.createObjectURL(fixedBlob);
           // saveAudio(audioBlob);
 
@@ -82,7 +92,7 @@ const RecordVoicePage = () => {
           //     storageId,
           //   });
 
-          const fileId = await saveAudioToIndexedDB(fixedBlob);
+          const fileId = await saveAudioToIndexedDB(mp3Blob);
           console.log('Audio saved with ID:', fileId);
           localStorage.setItem('audioFileId', fileId);
           localStorage.setItem('audioTranscript', title);
