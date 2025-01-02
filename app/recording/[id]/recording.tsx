@@ -9,6 +9,7 @@ import { api } from '@/convex/_generated/api';
 import { Note, PredictResponse } from '@/features/recording/types';
 import { getAudioFromIndexedDB } from '@/lib/utils';
 import { Preloaded } from 'convex/react';
+import dayjs from 'dayjs';
 import { debounce } from 'lodash';
 import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -40,6 +41,16 @@ export default function RecordingPage({
         // const audioTranscript = 'The person who loves football is my brother';
         if (!audioBlob) {
           return;
+        }
+        if (process.env.NEXT_PUBLIC_MODE === 'development') {
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(audioBlob);
+          link.download = `${dayjs().format(
+            'yyyy-MM-DD-HH:mm:ss',
+          )}recording.mp3`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
         }
         const audioUrl = URL.createObjectURL(audioBlob);
         const result =
