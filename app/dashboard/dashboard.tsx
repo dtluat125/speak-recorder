@@ -1,5 +1,6 @@
 'use client';
 
+import Container from '@/components/ui/Container';
 import { api } from '@/convex/_generated/api';
 import { Preloaded, useAction } from 'convex/react';
 import { FunctionReturnType } from 'convex/server';
@@ -42,13 +43,13 @@ export default function DashboardHomePage({
   // const finalNotes = relevantNotes ?? allNotes;
 
   return (
-    <div
+    <Container
       suppressHydrationWarning={true}
       className="mt-5 min-h-[calc(100vh-240px)] w-full"
     >
       <div className=" w-full py-[23px] md:py-4 lg:py-[25px]">
         <h1 className="text-center text-2xl font-medium text-dark md:text-4xl">
-          Your Voice Notes
+          Practice your pronunciation with TalkieeAI
         </h1>
       </div>
       {/* search bar */}
@@ -92,7 +93,7 @@ export default function DashboardHomePage({
             style={{ boxShadow: ' 0px 4px 4px 0px rgba(0, 0, 0, 0.25)' }}
             href="/record"
           >
-            Record a New Voice Note
+            Start Recording
           </Link>
           {/* {allNotes && (
             <Link
@@ -105,6 +106,6 @@ export default function DashboardHomePage({
           )} */}
         </div>
       </div>
-    </div>
+    </Container>
   );
 }

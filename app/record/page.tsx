@@ -3,6 +3,7 @@
 import { api } from '@/convex/_generated/api';
 import {
   convertWebMToMP3,
+  getAudioMetadata,
   getCurrentFormattedDate,
   saveAudio,
   saveAudioToIndexedDB,
@@ -16,6 +17,7 @@ import fixWebmDuration from 'fix-webm-duration';
 import { useRouter } from 'next-nprogress-bar';
 import { Notification } from '@/components/Notification';
 import { apiFactory } from '@/api/apiFactory';
+import Container from '@/components/ui/Container';
 
 const RecordVoicePage = () => {
   const [title, setTitle] = useState(
@@ -64,10 +66,11 @@ const RecordVoicePage = () => {
 
       recorder.onstop = async () => {
         try {
-          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-          const mp3Blob = await convertWebMToMP3(audioBlob);
+          let audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          if (getAudioMetadata().mimeType === 'audio/mp3')
+            audioBlob = await convertWebMToMP3(audioBlob);
 
-          const fileId = await saveAudioToIndexedDB(mp3Blob);
+          const fileId = await saveAudioToIndexedDB(audioBlob);
           console.log('Audio saved with ID:', fileId);
           localStorage.setItem('audioFileId', fileId);
           localStorage.setItem('audioTranscript', title);
@@ -133,13 +136,13 @@ const RecordVoicePage = () => {
   };
 
   return (
-    <div className=" flex flex-col items-center justify-between">
+    <Container className=" flex flex-col items-center justify-between">
       <p className="pt-[25px] text-center  text-xl font-medium text-dark md:pt-[47px] md:text-4xl">
-        Hit record and read the below text out loud
+        Speak anything loud and clear!
       </p>
-      <blockquote className="mt-6 border-l-2 pl-6 italic md:text-2xl">
+      {/* <blockquote className="mt-6 border-l-2 pl-6 italic md:text-2xl">
         "{title}"
-      </blockquote>
+      </blockquote> */}
       <p className="mb-20 mt-4 text-gray-400">{formattedDate}</p>
       <div className="relative mx-auto flex h-[316px] w-[316px] items-center justify-center">
         <div
@@ -188,7 +191,7 @@ const RecordVoicePage = () => {
           </button>
         )}
       </div>
-    </div>
+    </Container>
   );
 };
 

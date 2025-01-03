@@ -178,3 +178,23 @@ function convertFloat32ToInt16(buffer: Float32Array): Int16Array {
   }
   return int16Array;
 }
+
+export function getAudioMetadata() {
+  switch (process.env.NEXT_PUBLIC_AUDIO_MIME_TYPE) {
+    case 'audio/mp4':
+      return {
+        mimeType: 'audio/mp4',
+        extension: 'm4a',
+      };
+    case 'audio/mp3':
+      return {
+        mimeType: 'audio/mp3',
+        extension: 'mp3',
+      };
+    default:
+      return {
+        mimeType: 'audio/mp3',
+        extension: 'mp3',
+      };
+  }
+}

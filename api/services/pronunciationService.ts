@@ -3,6 +3,7 @@ import FormData from 'form-data';
 
 import { PredictResponse } from '@/features/recording/types';
 import dayjs from 'dayjs';
+import { getAudioMetadata } from '@/lib/utils';
 
 class PronunciationService {
   private apiClient;
@@ -27,7 +28,9 @@ class PronunciationService {
     formData.append(
       'audio',
       audioBlob,
-      `${dayjs().format('YYYY-MM-DD HH:mm:ss')}.mp3`,
+      `${dayjs().format('YYYY-MM-DD HH:mm:ss')}.${
+        getAudioMetadata().extension
+      }`,
     );
 
     // Append transcript text

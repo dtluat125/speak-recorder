@@ -7,7 +7,7 @@ import RecordingMobile from '@/components/pages/recording/RecordingMobile';
 import Container from '@/components/ui/Container';
 import { api } from '@/convex/_generated/api';
 import { Note, PredictResponse } from '@/features/recording/types';
-import { getAudioFromIndexedDB } from '@/lib/utils';
+import { getAudioFromIndexedDB, getAudioMetadata } from '@/lib/utils';
 import { Preloaded } from 'convex/react';
 import dayjs from 'dayjs';
 import { debounce } from 'lodash';
@@ -47,7 +47,9 @@ export default function RecordingPage({
       if (process.env.NEXT_PUBLIC_MODE !== 'production') {
         const link = document.createElement('a');
         link.href = URL.createObjectURL(audioBlob);
-        link.download = `${dayjs().format('YYYY-MM-DD-HH:mm:ss')}recording.mp3`;
+        link.download = `${dayjs().format('YYYY-MM-DD-HH:mm:ss')}recording.${
+          getAudioMetadata().extension
+        }`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
