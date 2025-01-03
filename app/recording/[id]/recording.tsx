@@ -7,6 +7,7 @@ import RecordingMobile from '@/components/pages/recording/RecordingMobile';
 import Container from '@/components/ui/Container';
 import { api } from '@/convex/_generated/api';
 import { Note, PredictResponse } from '@/features/recording/types';
+import { useCheckPronunciation } from '@/hooks/use-check-pronunciation';
 import { getAudioFromIndexedDB, getAudioMetadata } from '@/lib/utils';
 import { Preloaded } from 'convex/react';
 import dayjs from 'dayjs';
@@ -27,70 +28,55 @@ export default function RecordingPage({
     note: null,
   });
 
-  const [error, setError] = useState('');
+  const { loading, error, result, checkPronunciation } =
+    useCheckPronunciation();
 
-  const [
-    { loading: checkPronunciationLoading, value: checkPronunciationResponse },
-    checkPronunciation,
-  ] = useAsyncFn(async () => {
-    try {
-      const audioFileId = localStorage.getItem('audioFileId');
-      const audioTranscript = localStorage.getItem('audioTranscript');
-      const audioBlob = await getAudioFromIndexedDB(audioFileId || ''); // Replace with the actual audio file ID
+  const handleCheckPronunciation = async (
+    audioBlob?: Blob,
+    audioTranscript?: string,
+  ) => {
+    const response = await checkPronunciation?.(
+      audioBlob || null,
+      audioTranscript,
+    );
+    const audioUrl = audioBlob
+      ? URL.createObjectURL(audioBlob)
+      : currentNote?.note?.audioFileUrl;
+    setCurrentNote({
+      note: {
+        audioFileUrl: audioUrl,
+        result: response as PredictResponse,
+      },
+    });
+  };
 
-      // const fileData = await fetch('/test.mp3');
-      // const audioBlob = await fileData.blob();
-      // const audioTranscript = 'The person who loves football is my brother';
-      if (!audioBlob) {
-        return;
-      }
-      if (process.env.NEXT_PUBLIC_MODE !== 'production') {
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(audioBlob);
-        link.download = `${dayjs().format('YYYY-MM-DD-HH:mm:ss')}recording.${
-          getAudioMetadata().extension
-        }`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const result = await apiFactory.pronunciationService?.checkPronunciation(
-        audioBlob,
-        audioTranscript || '',
-      );
-
-      setCurrentNote({
-        note: {
-          ...currentNote.note,
-          audioFileUrl: audioUrl,
-          generatingTranscript: false,
-          generatingTitle: false,
-          transcription: audioTranscript || '',
-          title: audioTranscript || '',
-          result: result as PredictResponse,
-        },
-      });
-
-      return result;
-
-      console.log('result', result);
-    } catch (error: any) {
-      console.error('Error:', error);
-      setError(error?.response?.data?.detail || 'Fail to check pronunciation');
-      return {
-        error: error?.response?.data?.detail || 'Fail to check pronunciation',
-      };
-    }
-  }, []);
-
-  const debounceCheckPronunciation = debounce(checkPronunciation, 1000);
+  const debounceCheckPronunciation = debounce(handleCheckPronunciation, 1000);
 
   useEffect(() => {
-    debounceCheckPronunciation();
+    const audioFileId = localStorage.getItem('audioFileId');
+    const audioTranscript = localStorage.getItem('audioTranscript') || '';
+    if (audioFileId) {
+      getAudioFromIndexedDB(audioFileId).then((audioBlob) => {
+        if (audioBlob) {
+          debounceCheckPronunciation?.(audioBlob, audioTranscript);
+        }
+      });
+    }
   }, [checkPronunciation]);
 
-  if (checkPronunciationLoading || !checkPronunciationResponse) {
+  const handleReevaluate = async (transcript: string) => {
+    checkPronunciation?.(null, transcript)?.then((response) => {
+      setCurrentNote({
+        note: {
+          ...currentNote?.note,
+          transcription: transcript,
+          result: response as PredictResponse,
+        },
+      });
+    });
+  };
+
+  if (loading || !result) {
     return (
       <Container className="mt-10 text-center">
         <h1 className="text-4xl">
@@ -126,8 +112,14 @@ export default function RecordingPage({
     <Container className="mx-auto max-w-[1500px]">
       {
         <>
-          <RecordingDesktop {...(currentNote as { note: Note })} />
-          <RecordingMobile {...(currentNote as { note: Note })} />
+          <RecordingDesktop
+            reevaluate={handleReevaluate}
+            {...(currentNote as { note: Note })}
+          />
+          <RecordingMobile
+            reevaluate={handleReevaluate}
+            {...(currentNote as { note: Note })}
+          />
         </>
       }
     </Container>

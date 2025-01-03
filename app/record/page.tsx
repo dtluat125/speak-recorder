@@ -73,7 +73,7 @@ const RecordVoicePage = () => {
           const fileId = await saveAudioToIndexedDB(audioBlob);
           console.log('Audio saved with ID:', fileId);
           localStorage.setItem('audioFileId', fileId);
-          localStorage.setItem('audioTranscript', title);
+          localStorage.setItem('audioTranscript', '');
 
           // Optional: Redirect or perform additional actions
           router.push(`/recording/test`, { scroll: false });

@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import './globals.css';
-import ConvexClientProvider from './ConvexClientProvider';
-import Footer from '@/components/ui/Footer';
-import { Toaster } from 'react-hot-toast';
 import PlausibleProvider from 'next-plausible';
+import { Toaster } from 'react-hot-toast';
+import ConvexClientProvider from './ConvexClientProvider';
+import './globals.css';
+import { TooltipProvider } from '@radix-ui/react-tooltip';
 
 let title = 'TalkieeAI - Practice English Speaking with AI';
 let description =
@@ -47,13 +47,15 @@ export default function RootLayout({
         <PlausibleProvider domain={process.env.NEXT_PUBLIC_DOMAIN || ''} />
       </head>
       <body>
-        <ConvexClientProvider>
-          <div className="flex min-h-screen flex-col">
-            <div className="flex-1">{children}</div>
-            {/* <Footer /> */}
-          </div>
-          <Toaster position="bottom-left" reverseOrder={false} />
-        </ConvexClientProvider>
+        <TooltipProvider delayDuration={100}>
+          <ConvexClientProvider>
+            <div className="flex min-h-screen flex-col">
+              <div className="flex-1">{children}</div>
+              {/* <Footer /> */}
+            </div>
+            <Toaster position="bottom-left" reverseOrder={false} />
+          </ConvexClientProvider>
+        </TooltipProvider>
       </body>
     </html>
   );

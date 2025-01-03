@@ -2,14 +2,26 @@
 
 import AudioPlayer from '@/components/pages/recording/AudioPlayer';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Doc } from '@/convex/_generated/dataModel';
+import { Input } from '@/components/ui/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { routes } from '@/features/common/constants';
-import { Note, PredictResponse } from '@/features/recording/types';
+import { Note } from '@/features/recording/types';
 import { cn } from '@/lib/utils';
+import { Cross2Icon, Pencil1Icon, UpdateIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-export default function RecordingDesktop({ note }: { note: Note }) {
+export default function RecordingDesktop({
+  note,
+  reevaluate,
+}: {
+  note: Note;
+  reevaluate: (transcript: string) => void;
+}) {
   const {
     generatingTitle,
     summary,
@@ -19,7 +31,10 @@ export default function RecordingDesktop({ note }: { note: Note }) {
     audioFileUrl,
     result,
   } = note || {};
+
   const [originalIsOpen, setOriginalIsOpen] = useState<boolean>(true);
+  const [editTranscript, setEditTranscript] = useState<boolean>(false);
+  const [currentTranscript, setCurrentTranscript] = useState<string>('');
 
   const gradedTitle = useMemo(() => {
     return (
@@ -46,7 +61,16 @@ export default function RecordingDesktop({ note }: { note: Note }) {
         })}
       </div>
     );
-  }, [title]);
+  }, [result]);
+
+  const originTranscript = useMemo(() => {
+    return result?.labels
+      ?.map((wordPredict, index) => {
+        return wordPredict.word;
+      })
+      ?.join(' ')
+      ?.toLocaleLowerCase();
+  }, [result]);
 
   const gradedPhonemes = useMemo(() => {
     return (
@@ -71,20 +95,105 @@ export default function RecordingDesktop({ note }: { note: Note }) {
     );
   }, [title]);
 
+  const handleReevaluate = () => {
+    setEditTranscript(false);
+    reevaluate(currentTranscript);
+  };
+
+  const handleCancelEditTranscript = () => {
+    setEditTranscript(false);
+    setCurrentTranscript(originTranscript);
+  };
+
+  useEffect(() => {
+    if (originTranscript) {
+      setCurrentTranscript(originTranscript);
+    }
+  }, [originTranscript]);
+
   return (
     <div className="hidden md:block">
       <div className="mt-5 flex items-center justify-start">
-        <div />
-        <div className="flex flex-col gap-5">
-          <h2
-            className={`leading text-xl font-medium leading-[114.3%] tracking-[-0.75px] text-dark md:text-[35px] lg:text-[43px] ${
-              generatingTitle && 'animate-pulse'
-            }`}
+        <div className="flex w-full flex-col gap-5">
+          <div
+            className={cn(
+              'flex w-full flex-wrap items-center gap-4',
+              editTranscript ? 'gap-10' : 'gap-4',
+            )}
           >
-            {generatingTitle
-              ? 'Generating Title...'
-              : gradedTitle ?? 'Your Note'}
-          </h2>
+            {editTranscript ? (
+              <div className="flex-1">
+                <Input
+                  className={`leading h-auto text-4xl font-medium leading-[114.3%] tracking-[-0.75px] text-dark${
+                    generatingTitle && 'animate-pulse'
+                  }`}
+                  value={currentTranscript}
+                  onChange={(e) => setCurrentTranscript(e.target.value)}
+                />
+              </div>
+            ) : (
+              <h2
+                className={`leading text-4xl font-medium leading-[114.3%] tracking-[-0.75px] text-dark${
+                  generatingTitle && 'animate-pulse'
+                }`}
+              >
+                {generatingTitle
+                  ? 'Generating Title...'
+                  : gradedTitle ?? 'Your Note'}
+              </h2>
+            )}
+            {editTranscript ? (
+              <div className="flex gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="mt-1"
+                      onClick={handleReevaluate}
+                    >
+                      <UpdateIcon className="h-7 w-7" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Reevaluate</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="mt-1"
+                      onClick={handleCancelEditTranscript}
+                    >
+                      <Cross2Icon className="h-7 w-7" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Cancel</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="mt-3"
+                    onClick={() => setEditTranscript(true)}
+                  >
+                    <Pencil1Icon className="h-7 w-7" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Not what you've just said? Update and reevaluate</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
 
           <div
             className={`leading flex text-sm font-medium leading-[114.3%] tracking-[-0.75px] text-dark md:text-base lg:text-lg ${

@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import colors from 'tailwindcss/colors';
 
 const config: Config = {
   darkMode: ['class'],
@@ -14,6 +15,10 @@ const config: Config = {
         secondary: '#67028B',
         dark: '#2D2D2D',
         light: '#EBECEF',
+        accent: {
+          DEFAULT: '#0F172A1A',
+          foreground: colors.slate[900],
+        },
       },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
