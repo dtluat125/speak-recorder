@@ -53,7 +53,10 @@ const RecordVoicePage = () => {
       const audioStream = new MediaStream(stream.getAudioTracks());
 
       const recorder = new MediaRecorder(audioStream, {
-        mimeType: 'audio/webm',
+        mimeType:
+          getAudioMetadata()?.mimeType === 'audio/mp4'
+            ? 'audio/mp4'
+            : 'audio/webm',
         audioBitsPerSecond: 768000,
       });
 

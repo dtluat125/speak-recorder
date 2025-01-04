@@ -34,7 +34,7 @@ class PronunciationService {
     );
 
     // Append transcript text
-    formData.append('transcript', transcriptText?.toLowerCase());
+    formData.append('transcript', transcriptText?.toLowerCase() || '//');
 
     try {
       const response = await this.apiClient.post<PredictResponse>(

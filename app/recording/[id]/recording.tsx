@@ -76,7 +76,7 @@ export default function RecordingPage({
     });
   };
 
-  if (loading || !result) {
+  if (loading || (!result && !error)) {
     return (
       <Container className="mt-10 text-center">
         <h1 className="text-4xl">
