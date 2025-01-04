@@ -65,6 +65,7 @@ export default function RecordingPage({
   }, [checkPronunciation]);
 
   const handleReevaluate = async (transcript: string) => {
+    localStorage.setItem('audioTranscript', transcript);
     checkPronunciation?.(null, transcript)?.then((response) => {
       setCurrentNote({
         note: {
@@ -78,9 +79,9 @@ export default function RecordingPage({
 
   if (loading || (!result && !error)) {
     return (
-      <Container className="mt-10 text-center">
-        <h1 className="text-4xl">
-          <Loader2 className="mx-auto !h-10 !w-10 animate-spin" />
+      <Container className="flex h-[calc(100vh-280px)] items-center justify-center text-center">
+        <h1 className="my-auto flex items-center justify-center gap-2 text-4xl">
+          <span className="animate-pulse">Processing... </span>{' '}
         </h1>
       </Container>
     );
