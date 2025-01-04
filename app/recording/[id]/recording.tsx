@@ -155,7 +155,7 @@ export default function RecordingPage({
           <p className="text-xl font-semibold md:text-center">
             Transcript confirmation
           </p>
-          <div className="mt-3">
+          <div className="mt-3 text-lg">
             {editTranscript ? (
               <div className="flex gap-2">
                 <Tooltip>
@@ -163,9 +163,9 @@ export default function RecordingPage({
                     <Button
                       variant="ghost"
                       onClick={() => setEditTranscript(false)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-1"
                     >
-                      Confirm <CheckIcon className="h-6 w-6 shrink-0" />
+                      Confirm <CheckIcon className="h-4 w-4 shrink-0" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -179,9 +179,9 @@ export default function RecordingPage({
                   <Button
                     variant="ghost"
                     onClick={() => setEditTranscript(true)}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-1"
                   >
-                    Edit <Pencil1Icon className="h-6 shrink-0 md:w-6" />
+                    Edit <Pencil1Icon className="h-4 w-4 shrink-0 md:w-6" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
