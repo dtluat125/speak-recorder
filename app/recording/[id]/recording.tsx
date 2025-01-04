@@ -152,7 +152,44 @@ export default function RecordingPage({
     return (
       <Container>
         <div className="flex h-[calc(100vh-280px)] flex-col items-center justify-center">
-          <p className="text-xl md:text-center">Transcript confirmation</p>
+          <p className="text-xl font-semibold md:text-center">
+            Transcript confirmation
+          </p>
+          <div className="mt-3">
+            {editTranscript ? (
+              <div className="flex gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      onClick={() => setEditTranscript(false)}
+                      className="flex items-center gap-2"
+                    >
+                      Confirm <CheckIcon className="h-6 w-6 shrink-0" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Confirm</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    onClick={() => setEditTranscript(true)}
+                    className="flex items-center gap-2"
+                  >
+                    Edit <Pencil1Icon className="h-6 shrink-0 md:w-6" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Not what you've just said? Update the transcript</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
           <div
             className={cn(
               'text-medium mt-6  flex flex-wrap items-center gap-4 md:mt-8',
@@ -172,45 +209,9 @@ export default function RecordingPage({
                 "{currentTranscript || 'Transcription not available'}"
               </p>
             )}
-
-            {editTranscript ? (
-              <div className="flex gap-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => setEditTranscript(false)}
-                    >
-                      <CheckIcon className="h-7 w-7" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Confirm</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            ) : (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => setEditTranscript(true)}
-                  >
-                    <Pencil1Icon className="h-4 w-4  md:h-6 md:w-6" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Not what you've just said? Update the transcript</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
           </div>
           <div className="mt-6">
-            <Button onClick={handleConfirmTranscript}>
-              Confirm Transcript
-            </Button>
+            <Button onClick={handleConfirmTranscript}>Next</Button>
           </div>
         </div>
       </Container>
