@@ -1,20 +1,30 @@
 'use client';
 
-import { apiFactory } from '@/api/apiFactory';
 import { Notification } from '@/components/Notification';
 import RecordingDesktop from '@/components/pages/recording/RecordingDesktop';
 import RecordingMobile from '@/components/pages/recording/RecordingMobile';
+import { Button } from '@/components/ui/button';
 import Container from '@/components/ui/Container';
+import { Input } from '@/components/ui/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { api } from '@/convex/_generated/api';
 import { Note, PredictResponse } from '@/features/recording/types';
 import { useCheckPronunciation } from '@/hooks/use-check-pronunciation';
-import { getAudioFromIndexedDB, getAudioMetadata } from '@/lib/utils';
+import { useTranscribe } from '@/hooks/use-transcribe';
+import { cn, getAudioFromIndexedDB } from '@/lib/utils';
+import {
+  CheckIcon,
+  Cross2Icon,
+  Pencil1Icon,
+  UpdateIcon,
+} from '@radix-ui/react-icons';
 import { Preloaded } from 'convex/react';
-import dayjs from 'dayjs';
 import { debounce } from 'lodash';
-import { Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useAsyncFn } from 'react-use';
 
 export default function RecordingPage({
   preloadedNote,
@@ -28,9 +38,19 @@ export default function RecordingPage({
     note: null,
   });
 
+  const [isTranscriptConfirmed, setIsTranscriptConfirmed] = useState(false);
+  const [editTranscript, setEditTranscript] = useState<boolean>(false);
+  const [currentTranscript, setCurrentTranscript] = useState<string>('');
+
   const { loading, error, result, checkPronunciation } =
     useCheckPronunciation();
 
+  const {
+    loading: transcribeLoading,
+    error: transcribeError,
+    result: transcribeResult,
+    transcribe,
+  } = useTranscribe();
   const handleCheckPronunciation = async (
     audioBlob?: Blob,
     audioTranscript?: string,
@@ -42,6 +62,7 @@ export default function RecordingPage({
     const audioUrl = audioBlob
       ? URL.createObjectURL(audioBlob)
       : currentNote?.note?.audioFileUrl;
+
     setCurrentNote({
       note: {
         audioFileUrl: audioUrl,
@@ -51,8 +72,16 @@ export default function RecordingPage({
   };
 
   const debounceCheckPronunciation = debounce(handleCheckPronunciation, 1000);
+  const debounceTranscribe = debounce(transcribe, 1000);
+
+  const handleConfirmTranscript = () => {
+    localStorage.setItem('audioTranscript', currentTranscript);
+    setEditTranscript(false);
+    setIsTranscriptConfirmed(true);
+  };
 
   useEffect(() => {
+    if (!isTranscriptConfirmed) return;
     const audioFileId = localStorage.getItem('audioFileId');
     const audioTranscript = localStorage.getItem('audioTranscript') || '';
     if (audioFileId) {
@@ -62,7 +91,24 @@ export default function RecordingPage({
         }
       });
     }
-  }, [checkPronunciation]);
+  }, [checkPronunciation, isTranscriptConfirmed]);
+
+  useEffect(() => {
+    if (isTranscriptConfirmed) return;
+    const audioFileId = localStorage.getItem('audioFileId');
+    if (audioFileId) {
+      getAudioFromIndexedDB(audioFileId).then((audioBlob) => {
+        if (audioBlob) {
+          debounceTranscribe?.(audioBlob);
+        }
+      });
+    }
+  }, [transcribe, isTranscriptConfirmed]);
+
+  useEffect(() => {
+    if (!transcribeResult) return;
+    setCurrentTranscript(transcribeResult.transcript);
+  }, [transcribeResult]);
 
   const handleReevaluate = async (transcript: string) => {
     localStorage.setItem('audioTranscript', transcript);
@@ -76,6 +122,100 @@ export default function RecordingPage({
       });
     });
   };
+
+  if (!isTranscriptConfirmed) {
+    if (transcribeLoading || (!transcribeResult && !transcribeError)) {
+      return (
+        <Container className="flex h-[calc(100vh-280px)] items-center justify-center text-center">
+          <h1 className="my-auto flex items-center justify-center gap-2 text-4xl">
+            <span className="animate-pulse">Transcribing... </span>{' '}
+          </h1>
+        </Container>
+      );
+    }
+
+    if (transcribeError) {
+      return (
+        <Container className=" ">
+          <div>
+            <Notification
+              title="Error"
+              variant="error"
+              message={transcribeError}
+              // className="max-w-[600px]"
+            />
+          </div>
+        </Container>
+      );
+    }
+
+    return (
+      <Container>
+        <div className="flex h-[calc(100vh-280px)] flex-col items-center justify-center">
+          <p className="text-xl md:text-center">Transcript confirmation</p>
+          <div
+            className={cn(
+              'text-medium mt-6  flex flex-wrap items-center gap-4 md:mt-8',
+              'gap-4',
+            )}
+          >
+            {editTranscript ? (
+              <div className="flex-1">
+                <Input
+                  className={`leading !h-auto text-2xl font-medium leading-[114.3%] tracking-[-0.75px] text-dark`}
+                  value={currentTranscript}
+                  onChange={(e) => setCurrentTranscript(e.target.value)}
+                />
+              </div>
+            ) : (
+              <p className="text-center text-2xl">
+                "{currentTranscript || 'Transcription not available'}"
+              </p>
+            )}
+
+            {editTranscript ? (
+              <div className="flex gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setEditTranscript(false)}
+                    >
+                      <CheckIcon className="h-7 w-7" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Confirm</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
+            ) : (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => setEditTranscript(true)}
+                  >
+                    <Pencil1Icon className="h-4 w-4  md:h-6 md:w-6" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Not what you've just said? Update the transcript</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
+          <div className="mt-6">
+            <Button onClick={handleConfirmTranscript}>
+              Confirm Transcript
+            </Button>
+          </div>
+        </div>
+      </Container>
+    );
+  }
 
   if (loading || (!result && !error)) {
     return (

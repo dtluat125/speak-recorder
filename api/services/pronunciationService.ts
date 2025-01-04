@@ -53,6 +53,36 @@ class PronunciationService {
       throw error;
     }
   }
+
+  public async transcribe(audioBlob: Blob): Promise<{ transcript: string }> {
+    const formData = new FormData();
+
+    // Append audio file
+    formData.append(
+      'audio',
+      audioBlob,
+      `${dayjs().format('YYYY-MM-DD HH:mm:ss')}.${
+        getAudioMetadata().extension
+      }`,
+    );
+
+    try {
+      const response = await this.apiClient.post<{ transcript: string }>(
+        '/transcribe',
+        formData,
+        {},
+      );
+
+      return response.data;
+    } catch (error: any) {
+      if (error.response) {
+        console.error('Error Response:', error.response.data);
+        throw error;
+      }
+      console.error('Error:', error.message);
+      throw error;
+    }
+  }
 }
 
 export default PronunciationService;

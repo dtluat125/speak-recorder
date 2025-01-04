@@ -70,7 +70,9 @@ export default function AudioPlayer({ src }: AudioPlayerProps) {
   return (
     <div className="w-full max-w-md overflow-hidden rounded-lg bg-slate-50 shadow-lg">
       <div className="p-4">
-        <audio ref={audioRef} src={src} />
+        <audio ref={audioRef} src={src}>
+          <source src={src} type="audio/mp4" />
+        </audio>
         <div className="mb-4 flex items-center justify-between">
           <Button onClick={togglePlayPause} variant="outline" size="icon">
             {isPlaying ? (
