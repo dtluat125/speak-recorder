@@ -100,9 +100,7 @@ export default function RecordingPage({
   if (loading || (!result && !error)) {
     return (
       <Container className="flex h-[calc(100vh-280px)] flex-col items-center justify-center gap-6 text-center">
-        <h1 className="text-xl">
-          Your pronunciation is under our assessment...
-        </h1>
+        <h1 className="text-xl">Analyzing your speech ...</h1>
 
         <Loader2 className="h-8 w-8 animate-spin" />
       </Container>

@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -12,18 +11,16 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { cn, getAudioFromIndexedDB } from '@/lib/utils';
+import { TranscribeResponse } from '@/hooks/use-transcribe';
+import { cn } from '@/lib/utils';
 import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
-import { TranscribeResponse, useTranscribe } from '@/hooks/use-transcribe';
 import { Loader2 } from 'lucide-react';
-import { debounce } from 'lodash';
 
 interface TranscribeDialogProps {
   open: boolean;
@@ -53,9 +50,6 @@ export default function TranscribeDialog({
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Transcript</DialogTitle>
-            <DialogDescription>
-              Confirm the transcript before continuing.
-            </DialogDescription>
           </DialogHeader>
           <UpdateTranscription
             handleSubmit={onSubmit}
@@ -73,9 +67,6 @@ export default function TranscribeDialog({
       <DrawerContent>
         <DrawerHeader className="text-left">
           <DrawerTitle>Transcript</DrawerTitle>
-          <DrawerDescription>
-            Confirm the transcript before continuing.
-          </DrawerDescription>
         </DrawerHeader>
         <UpdateTranscription
           className="px-4"
@@ -124,7 +115,7 @@ function UpdateTranscription({
     >
       {transcribeLoading ? (
         <div className="flex animate-pulse gap-2">
-          Your audio is being transcribed...
+          Listening...
           <Loader2 className="animate-spin" />
         </div>
       ) : (
