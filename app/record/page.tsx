@@ -18,6 +18,8 @@ import { useRouter } from 'next-nprogress-bar';
 import { Notification } from '@/components/Notification';
 import { apiFactory } from '@/api/apiFactory';
 import Container from '@/components/ui/Container';
+import TranscribeDialog from '@/components/pages/recording/TranscribeDialog';
+import { useTranscribe } from '@/hooks/use-transcribe';
 
 const RecordVoicePage = () => {
   const [title, setTitle] = useState(
@@ -40,6 +42,33 @@ const RecordVoicePage = () => {
 
   const router = useRouter();
   const startTime = useRef(Date.now());
+
+  const {
+    loading: transcribeLoading,
+    error: transcribeError,
+    result: transcribeResult,
+    transcribe,
+  } = useTranscribe();
+
+  const [isTranscribingOpen, setIsTranscribingOpen] = useState(false);
+  const onTranscribingConfirm = (transcript: string) => {
+    setIsTranscribingOpen(false);
+    localStorage.setItem('audioTranscript', transcript);
+    router.push(
+      `/recording/test?${new URLSearchParams({
+        audioFileId: localStorage.getItem('audioFileId') || '',
+      }).toString()}`,
+      { scroll: false },
+    );
+  };
+
+  const onTranscribingOpenChange = (open: boolean) => {
+    setIsTranscribingOpen(open);
+    if (!open) {
+      setIsRunning(false);
+      setTotalSeconds(0);
+    }
+  };
 
   async function startRecording() {
     try {
@@ -78,8 +107,11 @@ const RecordVoicePage = () => {
           localStorage.setItem('audioFileId', fileId);
           localStorage.setItem('audioTranscript', '');
 
+          transcribe?.(audioBlob);
+          setIsTranscribingOpen(true);
+
           // Optional: Redirect or perform additional actions
-          router.push(`/recording/test`, { scroll: false });
+          // router.push(`/recording/test`, { scroll: false });
         } catch (error) {
           console.error(error);
         }
@@ -140,6 +172,14 @@ const RecordVoicePage = () => {
 
   return (
     <Container className=" flex flex-col items-center justify-between">
+      <TranscribeDialog
+        open={isTranscribingOpen}
+        onOpenChange={onTranscribingOpenChange}
+        onTranscribingConfirm={onTranscribingConfirm}
+        loading={transcribeLoading}
+        error={transcribeError}
+        result={transcribeResult}
+      />
       <p className="pt-[25px] text-center  text-xl font-medium text-dark md:pt-[47px] md:text-4xl">
         Speak anything loud and clear!
       </p>

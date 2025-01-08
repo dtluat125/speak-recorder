@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 import { useState } from 'react';
 import { useAsyncFn } from 'react-use';
 
-interface TranscribeResponse {
+export interface TranscribeResponse {
   // Define the structure of your TranscribeResponse here
   transcript: string;
 }

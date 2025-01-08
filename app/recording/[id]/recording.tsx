@@ -24,6 +24,8 @@ import {
 } from '@radix-ui/react-icons';
 import { Preloaded } from 'convex/react';
 import { debounce } from 'lodash';
+import { Loader2 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 export default function RecordingPage({
@@ -38,19 +40,12 @@ export default function RecordingPage({
     note: null,
   });
 
-  const [isTranscriptConfirmed, setIsTranscriptConfirmed] = useState(false);
-  const [editTranscript, setEditTranscript] = useState<boolean>(false);
-  const [currentTranscript, setCurrentTranscript] = useState<string>('');
+  const urlSearchParams = useSearchParams();
+  const router = useRouter();
 
   const { loading, error, result, checkPronunciation } =
     useCheckPronunciation();
 
-  const {
-    loading: transcribeLoading,
-    error: transcribeError,
-    result: transcribeResult,
-    transcribe,
-  } = useTranscribe();
   const handleCheckPronunciation = async (
     audioBlob?: Blob,
     audioTranscript?: string,
@@ -71,18 +66,14 @@ export default function RecordingPage({
     });
   };
 
-  const debounceCheckPronunciation = debounce(handleCheckPronunciation, 1000);
-  const debounceTranscribe = debounce(transcribe, 1000);
-
-  const handleConfirmTranscript = () => {
-    localStorage.setItem('audioTranscript', currentTranscript);
-    setEditTranscript(false);
-    setIsTranscriptConfirmed(true);
-  };
+  const debounceCheckPronunciation = debounce(handleCheckPronunciation, 200);
 
   useEffect(() => {
-    if (!isTranscriptConfirmed) return;
-    const audioFileId = localStorage.getItem('audioFileId');
+    const audioFileId = urlSearchParams.get('audioFileId');
+    if (!audioFileId) {
+      router.push('/record');
+      return;
+    }
     const audioTranscript = localStorage.getItem('audioTranscript') || '';
     if (audioFileId) {
       getAudioFromIndexedDB(audioFileId).then((audioBlob) => {
@@ -91,24 +82,7 @@ export default function RecordingPage({
         }
       });
     }
-  }, [checkPronunciation, isTranscriptConfirmed]);
-
-  useEffect(() => {
-    if (isTranscriptConfirmed) return;
-    const audioFileId = localStorage.getItem('audioFileId');
-    if (audioFileId) {
-      getAudioFromIndexedDB(audioFileId).then((audioBlob) => {
-        if (audioBlob) {
-          debounceTranscribe?.(audioBlob);
-        }
-      });
-    }
-  }, [transcribe, isTranscriptConfirmed]);
-
-  useEffect(() => {
-    if (!transcribeResult) return;
-    setCurrentTranscript(transcribeResult.transcript);
-  }, [transcribeResult]);
+  }, [checkPronunciation]);
 
   const handleReevaluate = async (transcript: string) => {
     localStorage.setItem('audioTranscript', transcript);
@@ -123,107 +97,14 @@ export default function RecordingPage({
     });
   };
 
-  if (!isTranscriptConfirmed) {
-    if (transcribeLoading || (!transcribeResult && !transcribeError)) {
-      return (
-        <Container className="flex h-[calc(100vh-280px)] items-center justify-center text-center">
-          <h1 className="my-auto flex items-center justify-center gap-2 text-4xl">
-            <span className="animate-pulse">Transcribing... </span>{' '}
-          </h1>
-        </Container>
-      );
-    }
-
-    if (transcribeError) {
-      return (
-        <Container className=" ">
-          <div>
-            <Notification
-              title="Error"
-              variant="error"
-              message={transcribeError}
-              // className="max-w-[600px]"
-            />
-          </div>
-        </Container>
-      );
-    }
-
-    return (
-      <Container>
-        <div className="flex h-[calc(100vh-280px)] flex-col items-center justify-center">
-          <p className="text-xl font-semibold md:text-center">
-            Transcript confirmation
-          </p>
-          <div className="mt-3 text-lg">
-            {editTranscript ? (
-              <div className="flex gap-2">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      onClick={() => setEditTranscript(false)}
-                      className="flex items-center gap-1"
-                    >
-                      Confirm <CheckIcon className="h-4 w-4 shrink-0" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Confirm</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            ) : (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    onClick={() => setEditTranscript(true)}
-                    className="flex items-center gap-1"
-                  >
-                    Edit <Pencil1Icon className="h-4 w-4 shrink-0 md:w-6" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Not what you've just said? Update the transcript</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
-          </div>
-          <div
-            className={cn(
-              'text-medium mt-6  flex flex-wrap items-center gap-4 md:mt-8',
-              'gap-4',
-            )}
-          >
-            {editTranscript ? (
-              <div className="flex-1">
-                <Input
-                  className={`leading !h-auto text-2xl font-medium leading-[114.3%] tracking-[-0.75px] text-dark`}
-                  value={currentTranscript}
-                  onChange={(e) => setCurrentTranscript(e.target.value)}
-                />
-              </div>
-            ) : (
-              <p className="text-center text-2xl">
-                "{currentTranscript || 'Transcription not available'}"
-              </p>
-            )}
-          </div>
-          <div className="mt-6">
-            <Button onClick={handleConfirmTranscript}>Next</Button>
-          </div>
-        </div>
-      </Container>
-    );
-  }
-
   if (loading || (!result && !error)) {
     return (
-      <Container className="flex h-[calc(100vh-280px)] items-center justify-center text-center">
-        <h1 className="my-auto flex items-center justify-center gap-2 text-4xl">
-          <span className="animate-pulse">Processing... </span>{' '}
+      <Container className="flex h-[calc(100vh-280px)] flex-col items-center justify-center gap-6 text-center">
+        <h1 className="text-xl">
+          Your pronunciation is under our assessment...
         </h1>
+
+        <Loader2 className="h-8 w-8 animate-spin" />
       </Container>
     );
   }
