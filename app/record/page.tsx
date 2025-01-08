@@ -190,7 +190,7 @@ const RecordVoicePage = () => {
       <div className="relative mx-auto flex h-[316px] w-[316px] items-center justify-center">
         <div
           className={`recording-box absolute h-full w-full rounded-[50%] p-[12%] pt-[17%] ${
-            isRunning ? 'record-animation' : ''
+            isRunning ? 'record-animation animate-ping' : ''
           }`}
         >
           <div

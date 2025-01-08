@@ -76,7 +76,7 @@
 }
 
 .record-animation {
-  animation: rotate360 infinite 5s linear;
+  animation: rotate360 infinite 3s linear;
 }
 
 @keyframes ping {

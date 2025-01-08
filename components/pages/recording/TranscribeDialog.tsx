@@ -169,7 +169,7 @@ function UpdateTranscription({
           </div>
         </div>
       )}
-      <Button type="submit" disabled={!transcription}>
+      <Button type="submit" disabled={!transcription || !!transcribeLoading}>
         Confirm
       </Button>
     </form>
