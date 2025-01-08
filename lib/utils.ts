@@ -180,21 +180,64 @@ function convertFloat32ToInt16(buffer: Float32Array): Int16Array {
 }
 
 export function getAudioMetadata() {
+  let audioMetadata;
+
+  const isMimeTypeSupported = (mimeType: string) => {
+    return (
+      typeof MediaRecorder !== 'undefined' &&
+      MediaRecorder.isTypeSupported(mimeType)
+    );
+  };
+
   switch (process.env.NEXT_PUBLIC_AUDIO_MIME_TYPE) {
     case 'audio/mp4':
-      return {
-        mimeType: 'audio/mp4',
-        extension: 'm4a',
-      };
+      if (isMimeTypeSupported('audio/mp4')) {
+        audioMetadata = {
+          mimeType: 'audio/mp4',
+          extension: 'm4a',
+        };
+      } else {
+        console.warn(
+          'audio/mp4 is not supported in this browser. Falling back to audio/webm.',
+        );
+        audioMetadata = {
+          mimeType: 'audio/webm',
+          extension: 'webm',
+        };
+      }
+      break;
     case 'audio/mp3':
-      return {
-        mimeType: 'audio/mp3',
-        extension: 'mp3',
-      };
+      if (isMimeTypeSupported('audio/mp3')) {
+        audioMetadata = {
+          mimeType: 'audio/mp3',
+          extension: 'mp3',
+        };
+      } else {
+        console.warn(
+          'audio/mp3 is not supported in this browser. Falling back to audio/webm.',
+        );
+        audioMetadata = {
+          mimeType: 'audio/webm',
+          extension: 'webm',
+        };
+      }
+      break;
     default:
-      return {
-        mimeType: 'audio/mp3',
-        extension: 'mp3',
-      };
+      if (isMimeTypeSupported('audio/webm')) {
+        audioMetadata = {
+          mimeType: 'audio/webm',
+          extension: 'webm',
+        };
+      } else {
+        console.warn(
+          'audio/webm is not supported in this browser. Using default audio/mp3.',
+        );
+        audioMetadata = {
+          mimeType: 'audio/mp3',
+          extension: 'mp3',
+        };
+      }
   }
+
+  return audioMetadata;
 }
