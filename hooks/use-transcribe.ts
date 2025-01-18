@@ -24,14 +24,15 @@ export function useTranscribe(): UseTranscribeResponse {
   const [result, setResult] = useState<TranscribeResponse | null>(null);
 
   const [{ loading }, transcribe] = useAsyncFn(
-    async (passedAudioBlob?: Blob | null, transcript?: string) => {
+    async (passedAudioBlob?: Blob | null, passedAudioId?: string) => {
       try {
         let audioBlob = passedAudioBlob;
+        let audioId = passedAudioId;
         if (!audioBlob) {
           const audioFileId = localStorage.getItem('audioFileId');
 
           audioBlob = (await getAudioFromIndexedDB(audioFileId || '')) as any;
-
+          audioId = audioFileId || '';
           if (!audioBlob) throw new Error('Audio file not found');
         }
 
@@ -48,8 +49,10 @@ export function useTranscribe(): UseTranscribeResponse {
         }
 
         // Call the API to check pronunciation
-        const response =
-          await apiFactory.pronunciationService?.transcribe(audioBlob);
+        const response = await apiFactory.pronunciationService?.transcribe(
+          audioBlob,
+          audioId,
+        );
 
         setResult(response as TranscribeResponse);
         return response as TranscribeResponse;

@@ -25,14 +25,19 @@ export function useCheckPronunciation(): UseCheckPronunciationResponse {
   const [result, setResult] = useState<PredictResponse | null>(null);
 
   const [{ loading }, checkPronunciation] = useAsyncFn(
-    async (passedAudioBlob?: Blob | null, transcript?: string) => {
+    async (
+      passedAudioBlob?: Blob | null,
+      transcript?: string,
+      passedAudioId?: string,
+    ) => {
       try {
         let audioBlob = passedAudioBlob;
+        let audioId = passedAudioId;
         if (!audioBlob) {
           const audioFileId = localStorage.getItem('audioFileId');
 
           audioBlob = (await getAudioFromIndexedDB(audioFileId || '')) as any;
-
+          audioId = audioFileId || '';
           if (!audioBlob) throw new Error('Audio file not found');
         }
 
@@ -53,6 +58,7 @@ export function useCheckPronunciation(): UseCheckPronunciationResponse {
           await apiFactory.pronunciationService?.checkPronunciation(
             audioBlob,
             transcript || '',
+            audioId,
           );
 
         setResult(response as PredictResponse);

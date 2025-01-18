@@ -1,6 +1,7 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import * as lamejs from '@breezystack/lamejs';
+import { v4 as uuid } from 'uuid';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -67,7 +68,7 @@ export function saveAudioToIndexedDB(blob: Blob): Promise<string> {
       const clearRequest = store.clear();
 
       clearRequest.onsuccess = () => {
-        const fileId = 'audioFile'; // Use a fixed ID since there's only one item
+        const fileId = `audio_${uuid()}`; // Use a fixed ID since there's only one item
         const putRequest = store.put({ id: fileId, file: blob });
 
         putRequest.onsuccess = () => resolve(fileId);

@@ -16,6 +16,7 @@ class PronunciationService {
   public async checkPronunciation(
     audioBlob: Blob,
     transcriptText: string,
+    audioId?: string,
   ): Promise<
     | PredictResponse
     | {
@@ -28,7 +29,7 @@ class PronunciationService {
     formData.append(
       'audio',
       audioBlob,
-      `${dayjs().format('YYYY-MM-DD HH:mm:ss')}.${
+      `${audioId || dayjs().format('YYYY-MM-DD HH:mm:ss')}.${
         getAudioMetadata().extension
       }`,
     );
@@ -54,14 +55,17 @@ class PronunciationService {
     }
   }
 
-  public async transcribe(audioBlob: Blob): Promise<{ transcript: string }> {
+  public async transcribe(
+    audioBlob: Blob,
+    audioId?: string,
+  ): Promise<{ transcript: string }> {
     const formData = new FormData();
 
     // Append audio file
     formData.append(
       'audio',
       audioBlob,
-      `${dayjs().format('YYYY-MM-DD HH:mm:ss')}.${
+      `${audioId || dayjs().format('YYYY-MM-DD HH:mm:ss')}.${
         getAudioMetadata().extension
       }`,
     );
