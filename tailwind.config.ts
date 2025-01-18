@@ -11,13 +11,26 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: { DEFAULT: '#491E6B', foreground: '#F5F5F5' },
+        primary: {
+          DEFAULT: '#491E6B',
+          foreground: '#F5F5F5',
+        },
         secondary: '#67028B',
         dark: '#2D2D2D',
         light: '#EBECEF',
         accent: {
           DEFAULT: '#0F172A1A',
-          foreground: colors.slate[900],
+          foreground: 'colors.slate[900]',
+        },
+        sidebar: {
+          DEFAULT: 'hsl(var(--sidebar-background))',
+          foreground: 'hsl(var(--sidebar-foreground))',
+          primary: 'hsl(var(--sidebar-primary))',
+          'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
+          accent: 'hsl(var(--sidebar-accent))',
+          'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
+          border: 'hsl(var(--sidebar-border))',
+          ring: 'hsl(var(--sidebar-ring))',
         },
       },
       backgroundImage: {

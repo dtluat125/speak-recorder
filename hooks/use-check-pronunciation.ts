@@ -17,6 +17,7 @@ interface UseCheckPronunciationResponse {
   checkPronunciation: (
     audioBlob?: Blob | null,
     transcript?: string,
+    audioId?: string,
   ) => Promise<PredictResponse | undefined>;
 }
 

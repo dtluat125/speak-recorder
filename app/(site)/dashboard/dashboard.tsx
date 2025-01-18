@@ -87,13 +87,21 @@ export default function DashboardHomePage({
       </div> */}
       {/* actions button container */}
       <div className="mx-auto mt-[20px] flex h-fit w-full flex-col items-center px-5 pb-10 md:mt-[50px] lg:pb-5">
-        <div className="mt-10 flex flex-col gap-6 md:flex-row">
+        <div className="mt-10 flex flex-col gap-6 ">
           <Link
             className="rounded-[7px] bg-dark px-[37px] py-[15px] text-[17px] leading-[79%] tracking-[-0.75px] text-light md:text-2xl"
             style={{ boxShadow: ' 0px 4px 4px 0px rgba(0, 0, 0, 0.25)' }}
             href="/record"
           >
-            Start Recording
+            Pronunciation Coach
+          </Link>
+
+          <Link
+            className="rounded-[7px] bg-dark px-[37px] py-[15px] text-[17px] leading-[79%] tracking-[-0.75px] text-light md:text-2xl"
+            style={{ boxShadow: ' 0px 4px 4px 0px rgba(0, 0, 0, 0.25)' }}
+            href="/speaking-topics"
+          >
+            IELTS Speaking Topics
           </Link>
           {/* {allNotes && (
             <Link

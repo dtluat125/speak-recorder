@@ -1,12 +1,8 @@
+import Container from '@/components/ui/Container';
 import Header from '@/components/ui/Header';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div>
-      <Header />
-      {children}
-    </div>
-  );
+  return <Container>{children}</Container>;
 };
 
 export default DashboardLayout;

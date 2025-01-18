@@ -16,6 +16,7 @@ interface UseTranscribeResponse {
   result: TranscribeResponse | null;
   transcribe: (
     audioBlob?: Blob | null,
+    audioId?: string,
   ) => Promise<TranscribeResponse | undefined>;
 }
 

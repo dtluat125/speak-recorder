@@ -3,25 +3,11 @@
 import { Notification } from '@/components/Notification';
 import RecordingDesktop from '@/components/pages/recording/RecordingDesktop';
 import RecordingMobile from '@/components/pages/recording/RecordingMobile';
-import { Button } from '@/components/ui/button';
 import Container from '@/components/ui/Container';
-import { Input } from '@/components/ui/input';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { api } from '@/convex/_generated/api';
 import { Note, PredictResponse } from '@/features/recording/types';
 import { useCheckPronunciation } from '@/hooks/use-check-pronunciation';
-import { useTranscribe } from '@/hooks/use-transcribe';
-import { cn, getAudioFromIndexedDB } from '@/lib/utils';
-import {
-  CheckIcon,
-  Cross2Icon,
-  Pencil1Icon,
-  UpdateIcon,
-} from '@radix-ui/react-icons';
+import { getAudioFromIndexedDB } from '@/lib/utils';
 import { Preloaded } from 'convex/react';
 import { debounce } from 'lodash';
 import { Loader2 } from 'lucide-react';
@@ -49,10 +35,12 @@ export default function RecordingPage({
   const handleCheckPronunciation = async (
     audioBlob?: Blob,
     audioTranscript?: string,
+    audioFileId?: string,
   ) => {
     const response = await checkPronunciation?.(
       audioBlob || null,
       audioTranscript,
+      audioFileId,
     );
     const audioUrl = audioBlob
       ? URL.createObjectURL(audioBlob)
@@ -78,7 +66,7 @@ export default function RecordingPage({
     if (audioFileId) {
       getAudioFromIndexedDB(audioFileId).then((audioBlob) => {
         if (audioBlob) {
-          debounceCheckPronunciation?.(audioBlob, audioTranscript);
+          debounceCheckPronunciation?.(audioBlob, audioTranscript, audioFileId);
         }
       });
     }

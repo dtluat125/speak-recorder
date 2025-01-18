@@ -1,32 +1,23 @@
 'use client';
 
+import { Notification } from '@/components/Notification';
+import TranscribeDialog from '@/components/pages/recording/TranscribeDialog';
+import Container from '@/components/ui/Container';
 import { api } from '@/convex/_generated/api';
+import { useTranscribe } from '@/hooks/use-transcribe';
 import {
   convertWebMToMP3,
   getAudioMetadata,
   getCurrentFormattedDate,
-  saveAudio,
   saveAudioToIndexedDB,
 } from '@/lib/utils';
 import { useUser } from '@clerk/nextjs';
-import { ExclamationTriangleIcon } from '@radix-ui/react-icons';
 import { useMutation, useQuery } from 'convex/react';
+import { useRouter } from 'next-nprogress-bar';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
-import fixWebmDuration from 'fix-webm-duration';
-import { useRouter } from 'next-nprogress-bar';
-import { Notification } from '@/components/Notification';
-import { apiFactory } from '@/api/apiFactory';
-import Container from '@/components/ui/Container';
-import TranscribeDialog from '@/components/pages/recording/TranscribeDialog';
-import { useTranscribe } from '@/hooks/use-transcribe';
 
 const RecordVoicePage = () => {
-  const [title, setTitle] = useState(
-    'The person who loves football is my brother',
-  );
-  const envVarsUrl = useQuery(api.utils.envVarsMissing);
-
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
     null,
   );
@@ -76,7 +67,6 @@ const RecordVoicePage = () => {
         audio: true,
       });
 
-      console.log('Recording started', stream);
       setIsRunning(true);
 
       const audioStream = new MediaStream(stream.getAudioTracks());
@@ -89,7 +79,6 @@ const RecordVoicePage = () => {
         audioBitsPerSecond: 768000,
       });
 
-      console.log('Recorder created', recorder);
       let audioChunks: any = [];
 
       recorder.ondataavailable = (e) => {
@@ -103,11 +92,10 @@ const RecordVoicePage = () => {
             audioBlob = await convertWebMToMP3(audioBlob);
 
           const fileId = await saveAudioToIndexedDB(audioBlob);
-          console.log('Audio saved with ID:', fileId);
           localStorage.setItem('audioFileId', fileId);
           localStorage.setItem('audioTranscript', '');
 
-          transcribe?.(audioBlob);
+          transcribe?.(audioBlob, fileId);
           setIsTranscribingOpen(true);
 
           // Optional: Redirect or perform additional actions
@@ -165,7 +153,6 @@ const RecordVoicePage = () => {
   const handleRecordClick = () => {
     if (!isRunning) startRecording();
     else {
-      setTitle('Processing...');
       stopRecording();
     }
   };

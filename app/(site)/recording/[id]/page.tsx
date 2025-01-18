@@ -1,8 +1,5 @@
-import { api } from '@/convex/_generated/api';
-import { preloadQuery } from 'convex/nextjs';
-import { getAuthToken } from '@/app/auth';
-import RecordingPage from './recording';
 import { Id } from '@/convex/_generated/dataModel';
+import RecordingPage from './recording';
 
 const Page = async ({ params: { id } }: { params: { id: Id<'notes'> } }) => {
   // const token = await getAuthToken();
